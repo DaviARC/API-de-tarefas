@@ -1,22 +1,20 @@
-import pool from "pg";
+import pg from 'pg'
+const connectionString = `${process.env.CONNECTION_STRING}`;
+ 
 
-async function connect(){
-    if(global.connection){
-        return global.connection.connect();
-    }
-    const pool = new Pool({
-        connectionString: process.env.CONNECTION_STRING
-    })
 
-    const client = await pool.connect();
-    console.log("Criou pool de conexões no PostgreeSQL!")
+const client = new pg.Client({
+    connectionString
+})
 
-    const res = await client.query('SELECT NOW()')
-    console.log(res.rows[0])
-    client.release
+// const client = new pg.Client({
+//   host: 'localhost',
+//   port: 5432,
+//   database: 'ADMINISTRADOR DE TAREFAS',
+//   user: 'postgres',
+//   password: 'admin',
+// })
 
-    global.connection = pool
-    return pool.connect();
-}
+await client.connect();
 
-export default connect();
+export default client;
