@@ -1,27 +1,26 @@
-import { raw } from "express"
 import client from "../config/dbConnect.js"
 import Usuario from "../models/usuario.js"
 
 
 export default class usuarioController{
     static listarUsuarios = async(req,res)=>{
-        const result = await client.query("SELECT * FROM t_adt_usuario")
-        res.status(200).send(result.rows)
+        try {
+            const result = await client.query("SELECT * FROM t_adt_usuario ORDER BY cd_usuario")
+            res.status(200).send(result.rows)
+        } catch (error) {
+            console.log(error);   
+        }
     }
     static listarUsuariosPorID = async(req, res)=>{
         const id = req.params.id;
         console.log(id);
-        const resultado = await client.query({
-            name: 'fetch-user',
-            text: "SELECT * FROM t_adt_usuario WHERE cd_usuario = $1",
-            values: [id]
-        })
+        const resultado = await client.query( "SELECT * FROM t_adt_usuario WHERE cd_usuario = $1",[id])
         res.status(200).send(resultado.rows)
     }
     static cadastrarUsuarios = async(req, res)=>{
         let autor = new Usuario(req.body)
 
-        client.query("INSERT INTO t_adt_usuario VALUES ($1, $2, $3, $4)", [autor.codigoCliente, autor.nome, autor.dataNascimento, autor.telefone])
+        client.query("INSERT INTO t_adt_usuario VALUES ($1, $2, $3, $4)", [autor.cd_usuario, autor.nm_usuario, autor.dt_nascimento, autor.tel_usuario])
         res.status(200).send({
             message: "Autor cadastrado com sucesso"
         })
@@ -29,11 +28,10 @@ export default class usuarioController{
     static atualizarUsuario = async(req,res)=>{
         const id = req.params.id;
         const body = new Usuario(req.body);
-        let atributosObj = Object.keys(body)
-        let valores = Object.values(body);
+        let atributosObj = Object.keys(req.body);
+        let valores = Object.values(req.body);
         valores.push(parseInt(id));
         let atributos = ''
-
 
         for(let i = 0; i < atributosObj.length; i++){
             let aux = i
@@ -44,8 +42,16 @@ export default class usuarioController{
             }
         };
 
-        console.log(`UPDATE t_adt_usuario SET ${atributos} WHERE cd_usuario=$${atributosObj.length + 1}`)
-    
-        await client.query(`UPDATE t_adt_usuario SET ${atributos} WHERE cd_usuario= $${atributos.length - 1}`, valores)
+        await client.query(`UPDATE t_adt_usuario SET ${atributos} WHERE cd_usuario = $${atributosObj.length + 1}`, valores)
+        res.status(200).send({message: "Usuario atualizado com sucesso"})
+    }
+    static excluirUsuario = async (req,res)=>{
+        let id = [parseInt(req.params.id)];
+
+        console.log(id);
+
+        await client.query(`DELETE FROM t_adt_tarefa WHERE cd_usuario = ($1)`, id)
+        await client.query(`DELETE FROM t_adt_usuario WHERE cd_usuario = ($1)`, id)
+        res.status(200).send({message: "Usuario deletado com sucesso"})
     }
 }   

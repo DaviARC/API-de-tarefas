@@ -9,5 +9,6 @@ router
 .get('/usuario/:id', usuarioController.listarUsuariosPorID)
 .post('/usuario', usuarioController.cadastrarUsuarios)
 .put('/usuario/:id', usuarioController.atualizarUsuario)
+.delete('/usuario/:id', usuarioController.excluirUsuario)
 
 export default router;

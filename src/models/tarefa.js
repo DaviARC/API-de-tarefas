@@ -1,11 +1,9 @@
-import { v4 as uuidv4 } from 'uuid';
-
 class Tarefa {
-    constructor({Usuario, codigoTarefa, descricao, telefone}){
-        this.codigoCliente = Usuario.codigoCliente;
-        this.codigoTarefa = codigoTarefa ?? uuidv4();
-        this.descricao = descricao;
-        this.telefone = telefone;
+    constructor({cd_usuario, cd_tarefa, des_tarefa, tit_tarefa}){
+        this.cd_usuario = cd_usuario;
+        this.cd_tarefa = cd_tarefa;
+        this.des_tarefa = des_tarefa;
+        this.tit_tarefa = tit_tarefa;
     }
 }
 
