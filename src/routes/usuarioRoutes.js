@@ -1,5 +1,4 @@
 import express from "express";
-import client from "../config/dbConnect.js";
 import usuarioController from "../controllers/usuariosController.js";
 
 const router = express.Router();

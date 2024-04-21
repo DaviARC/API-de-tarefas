@@ -1,57 +1,78 @@
 import client from "../config/dbConnect.js"
+import ErroBase from "../erros/ErroBase.js"
+import NaoEncontrado from "../erros/NaoEncontrado.js"
 import Usuario from "../models/usuario.js"
 
 
 export default class usuarioController{
-    static listarUsuarios = async(req,res)=>{
+    static listarUsuarios = async(req,res,next)=>{
         try {
             const result = await client.query("SELECT * FROM t_adt_usuario ORDER BY cd_usuario")
+            
             res.status(200).send(result.rows)
         } catch (error) {
-            console.log(error);   
+            next(error)
         }
     }
-    static listarUsuariosPorID = async(req, res)=>{
+    static listarUsuariosPorID = async(req, res, next)=>{
+        try{
         const id = req.params.id;
-        console.log(id);
+
         const resultado = await client.query( "SELECT * FROM t_adt_usuario WHERE cd_usuario = $1",[id])
-        res.status(200).send(resultado.rows)
+        
+        resultado.rowCount !== 0 ? res.status(200).send(resultado.rows) : next(new NaoEncontrado());
+            
+        }catch (error){
+            next(error);
+        }
     }
-    static cadastrarUsuarios = async(req, res)=>{
-        let autor = new Usuario(req.body)
+    static cadastrarUsuarios = async(req, res, next)=>{
+        try{     
+            let usuario = new Usuario(req.body)
 
-        client.query("INSERT INTO t_adt_usuario VALUES ($1, $2, $3, $4)", [autor.cd_usuario, autor.nm_usuario, autor.dt_nascimento, autor.tel_usuario])
-        res.status(200).send({
-            message: "Autor cadastrado com sucesso"
-        })
+            client.query("INSERT INTO t_adt_usuario VALUES ($1, $2, $3, $4, $5, $6)", [usuario.cd_usuario, usuario.nm_usuario, usuario.dt_nascimento, usuario.tel_usuario, usuario.log_usuario, usuario.sen_usuario])
+            res.status(200).send({
+                message: "Usuario cadastrado com sucesso"
+            })
+        } catch (error) {
+            next(new ErroBase(error))
+        }
     }
-    static atualizarUsuario = async(req,res)=>{
-        const id = req.params.id;
-        const body = new Usuario(req.body);
-        let atributosObj = Object.keys(req.body);
-        let valores = Object.values(req.body);
-        valores.push(parseInt(id));
-        let atributos = ''
+    static atualizarUsuario = async(req,res, next)=>{
+        try{
+            const id = req.params.id;
+            let atributosObj = Object.keys(req.body);
+            let valores = Object.values(req.body);
+            valores.push(parseInt(id));
+            let atributos = ''
 
-        for(let i = 0; i < atributosObj.length; i++){
-            let aux = i
-            if(atributosObj.length - 1 === i){
-                atributos += `${atributosObj[i]}=$${aux + 1} `
-            } else {
-                atributos += `${atributosObj[i]}=$${aux + 1}, `
-            }
-        };
+            for(let i = 0; i < atributosObj.length; i++){
+                let aux = i
+                if(atributosObj.length - 1 === i){
+                    atributos += `${atributosObj[i]}=$${aux + 1} `
+                } else {
+                    atributos += `${atributosObj[i]}=$${aux + 1}, `
+                }
+            };
 
-        await client.query(`UPDATE t_adt_usuario SET ${atributos} WHERE cd_usuario = $${atributosObj.length + 1}`, valores)
-        res.status(200).send({message: "Usuario atualizado com sucesso"})
+            let resultado = await client.query(`UPDATE t_adt_usuario SET ${atributos} WHERE cd_usuario = $${atributosObj.length + 1}`, valores)
+
+            resultado.rowCount !== 0 ? res.status(200).send({message: "Usuario atualizado com sucesso"}) : next(new NaoEncontrado(`O usuario de id ${id} não existe`));  
+
+        } catch (error) {
+            console.log(error);
+            next(new ErroBase(error))
+        }
     }
-    static excluirUsuario = async (req,res)=>{
+    static excluirUsuario = async (req,res, next)=>{
+        try{
         let id = [parseInt(req.params.id)];
 
-        console.log(id);
-
         await client.query(`DELETE FROM t_adt_tarefa WHERE cd_usuario = ($1)`, id)
-        await client.query(`DELETE FROM t_adt_usuario WHERE cd_usuario = ($1)`, id)
-        res.status(200).send({message: "Usuario deletado com sucesso"})
+        const resultado = await client.query(`DELETE FROM t_adt_usuario WHERE cd_usuario = ($1)`, id)
+        resultado.rowCount !== 0 ? res.status(200).send({message: "Usuario deletado com sucesso"}) : next(new NaoEncontrado(`O usuario de id ${id} não existe`));  
+        } catch (error) {
+            next(new ErroBase(error))
+        }
     }
 }   

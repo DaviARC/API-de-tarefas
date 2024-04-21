@@ -14,8 +14,6 @@ await client.connect( async()=>{
     
     const usuario = new Usuario(2, 'Mário', "21-10-2005", 749964321)
 
-    // const { rows } = await client.query("INSERT INTO t_adt_usuario (cd_usuario, nm_usuario, dt_nascimento, tel_usuario) VALUES ($1, $2, $3, $4)", [usuario.codigoCliente, usuario.nome, usuario.dataNascimento, usuario.telefone])
-
     }catch(e){
         console.log(e)
     }

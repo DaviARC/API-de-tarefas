@@ -1,24 +1,47 @@
 import client from "../config/dbConnect.js"
+import NaoEncontrado from "../erros/NaoEncontrado.js";
 import Tarefa from "../models/tarefa.js";
 
 export default class tarefaController{
-    static listarTarefas = async(req,res)=>{
-        let id = [parseInt(req.params.id)];
+    static listarTarefas = async(req,res,next)=>{
+        try{
+            let id = [parseInt(req.params.id)];
 
-        const result = await client.query("SELECT * FROM t_adt_tarefa WHERE cd_usuario = ($1) ORDER BY cd_tarefa", id)
+            const resultado = await client.query("SELECT * FROM t_adt_tarefa WHERE cd_usuario = ($1) ORDER BY cd_tarefa", id)
 
-        res.status(200).send(result.rows)
+            resultado.rowCount !== 0 ? res.status(200).send(resultado.rows) : next(new NaoEncontrado(`O usuario do id ${id} não possui tarefas ou não existe`));        
+        } catch(error){
+            next(error)
+        }
     }
-    static cadastrarTarefas = async(req, res)=>{
+    static listarTarefasAutenticado = async(req,res,nex)=>{
+        try{
+            let id = [parseInt(req.userId)];
+            console.log(id);
+
+            const resultado = await client.query("SELECT * FROM t_adt_tarefa WHERE cd_usuario = ($1) ORDER BY cd_tarefa", id)
+
+            resultado.rowCount !== 0 ? res.status(200).send(resultado.rows) : next(new NaoEncontrado(`O usuario do id ${id} não possui tarefas ou não existe`));        
+        } catch(error){
+            next(error)
+        }
+    }
+    static cadastrarTarefas = async(req, res, next)=>{
+        try
+        {
         let tarefa = new Tarefa(req.body)
 
-        client.query("INSERT INTO t_adt_tarefa VALUES ($1, $2, $3, $4)", [tarefa.cd_usuario, tarefa.cd_tarefa, tarefa.des_tarefa, tarefa.tit_tarefa])
-
-        res.status(200).send({
-            message: "Autor cadastrado com sucesso"
-        })
+        await client.query("INSERT INTO t_adt_tarefa VALUES ($1, $2, $3, $4)", [tarefa.cd_usuario, tarefa.cd_tarefa, tarefa.des_tarefa, tarefa.tit_tarefa])
+       
+        res.status(200).send({message:"Tarefa cadastrada com sucesso!"})
+        }
+        catch(error)
+        {
+            next(error);
+        }
     }
-    static listarTarefaPorNome = async(req,res)=>{
+    static listarTarefaPorNome = async(req,res,next)=>{
+        try{
         const busca = await processaBusca(req.query)
         let atributos = Object.keys(busca);
         let valores = Object.values(busca)
@@ -39,7 +62,11 @@ export default class tarefaController{
 
        const resultado = await client.query(query, valores);
 
-        res.status(200).send(resultado.rows)
+       resultado.rowCount !== 0 ? res.status(200).send(resultado.rows) : next(new NaoEncontrado());
+    }
+    catch(error){
+        next(error)
+    }
     }
 }
 
