@@ -5,25 +5,40 @@ import Tarefa from "../models/tarefa.js";
 export default class tarefaController{
     static listarTarefas = async(req,res,next)=>{
         try{
-            let id = [parseInt(req.params.id)];
+            let id = req.params.id;
 
-            const resultado = await client.query("SELECT * FROM t_adt_tarefa WHERE cd_usuario = ($1) ORDER BY cd_tarefa", id)
+            const resultado = await client.query("SELECT * FROM t_adt_tarefa WHERE cd_usuario = ($1) ORDER BY cd_tarefa", [id])
 
             resultado.rowCount !== 0 ? res.status(200).send(resultado.rows) : next(new NaoEncontrado(`O usuario do id ${id} não possui tarefas ou não existe`));        
         } catch(error){
             next(error)
         }
     }
-    static listarTarefasAutenticado = async(req,res,nex)=>{
+    static listarTarefasAutenticado = async(req,res,next)=>{
         try{
-            let id = [parseInt(req.userId)];
-            console.log(id);
+            let id = req.userId;
 
-            const resultado = await client.query("SELECT * FROM t_adt_tarefa WHERE cd_usuario = ($1) ORDER BY cd_tarefa", id)
+            const resultado = await client.query("SELECT * FROM t_adt_tarefa WHERE cd_usuario = ($1) ORDER BY cd_tarefa", [id])
 
-            resultado.rowCount !== 0 ? res.status(200).send(resultado.rows) : next(new NaoEncontrado(`O usuario do id ${id} não possui tarefas ou não existe`));        
+            const rows = resultado.rows;
+
+            resultado.rowCount !== 0 ? res.status(200).json({rows}) : next(new NaoEncontrado(`O usuario do id ${id} não possui tarefas ou não existe`));        
         } catch(error){
             next(error)
+        }
+    }
+    static cadastrarTarefaAutenticado = async(req, res, next)=>{
+        try
+        {
+        let tarefa = new Tarefa(req.userId, req.body.tit_tarefa, req.body.des_tarefa)
+
+        await client.query("INSERT INTO t_adt_tarefa(cd_usuario, cd_tarefa, des_tarefa, tit_tarefa) VALUES ($1, $2, $3, $4)", [tarefa.cd_usuario, tarefa.cd_tarefa, tarefa.des_tarefa, tarefa.tit_tarefa])
+       
+        res.status(200).send({message:"Tarefa cadastrada com sucesso!"})
+        }
+        catch(error)
+        {
+            next(error);
         }
     }
     static cadastrarTarefas = async(req, res, next)=>{
@@ -31,7 +46,9 @@ export default class tarefaController{
         {
         let tarefa = new Tarefa(req.body)
 
-        await client.query("INSERT INTO t_adt_tarefa VALUES ($1, $2, $3, $4)", [tarefa.cd_usuario, tarefa.cd_tarefa, tarefa.des_tarefa, tarefa.tit_tarefa])
+        console.log(tarefa.cd_usuario, tarefa.cd_tarefa, tarefa.des_tarefa, tarefa.tit_tarefa);
+
+        await client.query("INSERT INTO t_adt_tarefa(cd_usuario, cd_tarefa, des_tarefa, tit_tarefa) VALUES ($1, $2, $3, $4)", [tarefa.cd_usuario, tarefa.cd_tarefa, tarefa.des_tarefa, tarefa.tit_tarefa])
        
         res.status(200).send({message:"Tarefa cadastrada com sucesso!"})
         }

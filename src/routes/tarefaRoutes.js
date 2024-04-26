@@ -9,6 +9,7 @@ router
 .get('/tarefas/:id', tarefaController.listarTarefas)
 .get('/tarefas',verifyJWT, tarefaController.listarTarefasAutenticado)
 .get('/tarefa/busca', tarefaController.listarTarefaPorNome)
-.post('/tarefa', tarefaController.cadastrarTarefas)
+.post('/tarefa',verifyJWT, tarefaController.cadastrarTarefaAutenticado)
+// .post('/tarefa', tarefaController.cadastrarTarefas)
 
 export default router;

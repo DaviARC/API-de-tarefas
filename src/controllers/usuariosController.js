@@ -30,7 +30,7 @@ export default class usuarioController{
         try{     
             let usuario = new Usuario(req.body)
 
-            client.query("INSERT INTO t_adt_usuario VALUES ($1, $2, $3, $4, $5, $6)", [usuario.cd_usuario, usuario.nm_usuario, usuario.dt_nascimento, usuario.tel_usuario, usuario.log_usuario, usuario.sen_usuario])
+            client.query("INSERT INTO t_adt_usuario VALUES ($1, $2, $3, $4)", [usuario.nm_usuario, usuario.log_usuario, usuario.sen_usuario, usuario.cd_usuario])
             res.status(200).send({
                 message: "Usuario cadastrado com sucesso"
             })
