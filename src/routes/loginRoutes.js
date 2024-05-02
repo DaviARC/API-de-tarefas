@@ -11,7 +11,7 @@ router.post("/login", async (req,res) => {
     }
     const resultado = await client.query("SELECT * FROM t_adt_usuario WHERE log_usuario = $1 and sen_usuario = $2", [login.user, login.password])
     if(resultado.rowCount !== 0){
-        const token = jwt.sign({userId: resultado.rows[0].cd_usuario}, `${process.env.SECRET}`, {expiresIn: 300})
+        const token = jwt.sign({userId: resultado.rows[0].cd_usuario}, `${process.env.SECRET}`, {expiresIn: 600})
         return res.json({auth:true, token})
     }
     res.status(401).send({message: "Usuário não autorizado"}).end();

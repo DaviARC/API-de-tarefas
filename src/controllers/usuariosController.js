@@ -66,7 +66,7 @@ export default class usuarioController{
     }
     static excluirUsuario = async (req,res, next)=>{
         try{
-        let id = [parseInt(req.params.id)];
+        let id = [req.params.id];
 
         await client.query(`DELETE FROM t_adt_tarefa WHERE cd_usuario = ($1)`, id)
         const resultado = await client.query(`DELETE FROM t_adt_usuario WHERE cd_usuario = ($1)`, id)

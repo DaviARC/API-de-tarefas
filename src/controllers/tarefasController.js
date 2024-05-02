@@ -1,4 +1,5 @@
 import client from "../config/dbConnect.js"
+import ErroBase from "../erros/ErroBase.js";
 import NaoEncontrado from "../erros/NaoEncontrado.js";
 import Tarefa from "../models/tarefa.js";
 
@@ -18,7 +19,7 @@ export default class tarefaController{
         try{
             let id = req.userId;
 
-            const resultado = await client.query("SELECT * FROM t_adt_tarefa WHERE cd_usuario = ($1) ORDER BY cd_tarefa", [id])
+            const resultado = await client.query("SELECT * FROM t_adt_tarefa WHERE cd_usuario = ($1) ORDER BY dt_inicio", [id])
 
             const rows = resultado.rows;
 
@@ -41,12 +42,22 @@ export default class tarefaController{
             next(error);
         }
     }
+    static atualizarTarefa = async (req,res,next)=>{
+        try{
+            let id = req.params.id
+            let concluido = req.body.con_tarefa;
+
+            await client.query("UPDATE t_adt_tarefa SET con_tarefa = $1 WHERE cd_tarefa = ($2)", [concluido, id])
+            res.status(200).send({message:"Tarefa atualizada com sucesso!"})
+        }
+        catch(erro){
+            next(new ErroBase(erro))
+        }
+    }
     static cadastrarTarefas = async(req, res, next)=>{
         try
         {
         let tarefa = new Tarefa(req.body)
-
-        console.log(tarefa.cd_usuario, tarefa.cd_tarefa, tarefa.des_tarefa, tarefa.tit_tarefa);
 
         await client.query("INSERT INTO t_adt_tarefa(cd_usuario, cd_tarefa, des_tarefa, tit_tarefa) VALUES ($1, $2, $3, $4)", [tarefa.cd_usuario, tarefa.cd_tarefa, tarefa.des_tarefa, tarefa.tit_tarefa])
        
@@ -84,6 +95,19 @@ export default class tarefaController{
     catch(error){
         next(error)
     }
+    }
+    static apagarTarefa = async(req,res,next)=>{
+        try{
+            const idUsuario = req.userId;
+            const idTarefa = req.params.id;
+
+            const resultado = await client.query(`DELETE FROM t_adt_tarefa WHERE cd_tarefa = ($1) and cd_usuario = ($2)`, [idTarefa, idUsuario])
+
+            resultado.rowCount !== 0 ? res.status(200).send({message: "A tarefa foi deletada com sucesso"}) : next(new NaoEncontrado(`A tarefa de id ${id} não existe`));  
+    
+        } catch (error) {
+            next(new ErroBase(error))
+        }
     }
 }
 
